@@ -86,6 +86,21 @@ projectile_color = (40, 58, 156)
 health_color_red = (100, 0, 0)
 health_color_green = (38, 196, 8)
 
+def movement_x(movement_variable):
+    surrounding1_x = surrounding1_x movement_variable 3
+    surrounding2_x = surrounding2_x
+    enemy1_x = enemy1_x
+    left_wall_top_x = left_wall_top_x
+    left_wall_bottom_x = left_wall_bottom_x
+    top_wall_right_x = top_wall_right_x
+    top_wall_left_x = top_wall_left_x
+    right_wall_top_x = right_wall_top_x
+    right_wall_bottom_x = right_wall_bottom_x
+    bottom_wall_right_x = bottom_wall_right_x
+    bottom_wall_left_x = bottom_wall_left_x
+    inside_x = inside_x
+    projectile_x = projectile_x
+
 clock = pygame.time.Clock()
 
 game_over = False
@@ -97,19 +112,7 @@ while game_over == False:
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_d]:
-        surrounding1_x -= 3
-        surrounding2_x -= 3
-        enemy1_x -= 3
-        left_wall_top_x -= 3
-        left_wall_bottom_x -= 3
-        top_wall_right_x -= 3
-        top_wall_left_x -= 3
-        right_wall_top_x -= 3
-        right_wall_bottom_x -= 3
-        bottom_wall_right_x -= 3
-        bottom_wall_left_x -= 3
-        inside_x -= 3
-        projectile_x -= 3
+        movement_x()
     if keys[pygame.K_a]:
         surrounding1_x += 3
         surrounding2_x += 3
