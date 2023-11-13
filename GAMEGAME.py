@@ -60,6 +60,8 @@ projectile_x = cursor_x
 projectile_y = cursor_y
 projectile_rect = pygame.Rect(projectile_x, projectile_y, 20, 20)
 
+projectile_list = []
+
 click_count = 0
 
 #bullets = []
@@ -86,20 +88,12 @@ projectile_color = (40, 58, 156)
 health_color_red = (100, 0, 0)
 health_color_green = (38, 196, 8)
 
-def movement_x(movement_variable):
-    surrounding1_x = surrounding1_x movement_variable 3
-    surrounding2_x = surrounding2_x
-    enemy1_x = enemy1_x
-    left_wall_top_x = left_wall_top_x
-    left_wall_bottom_x = left_wall_bottom_x
-    top_wall_right_x = top_wall_right_x
-    top_wall_left_x = top_wall_left_x
-    right_wall_top_x = right_wall_top_x
-    right_wall_bottom_x = right_wall_bottom_x
-    bottom_wall_right_x = bottom_wall_right_x
-    bottom_wall_left_x = bottom_wall_left_x
-    inside_x = inside_x
-    projectile_x = projectile_x
+objects_x = [surrounding1_x, surrounding2_x, enemy1_x, left_wall_top_x, left_wall_bottom_x, top_wall_right_x, top_wall_left_x, right_wall_top_x, right_wall_bottom_x, bottom_wall_right_x, bottom_wall_left_x, inside_x, projectile_x]
+objects_y = [surrounding1_y, surrounding2_y, enemy1_y, left_wall_top_y, left_wall_bottom_y, top_wall_right_y, top_wall_left_y, right_wall_top_y, right_wall_bottom_y, bottom_wall_right_y, bottom_wall_left_y, inside_y, projectile_y]
+
+cursor_x, cursor_y = pygame.mouse.get_pos()
+cursor_rect = pygame.Rect(cursor_x - 10, cursor_y - 10, 20, 20)
+projectile_rect = pygame.Rect(projectile_x, projectile_y, 20, 20)
 
 clock = pygame.time.Clock()
 
@@ -112,7 +106,19 @@ while game_over == False:
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_d]:
-        movement_x()
+        surrounding1_x -= 3
+        surrounding2_x -= 3
+        enemy1_x -= 3
+        left_wall_top_x -= 3
+        left_wall_bottom_x -= 3
+        top_wall_right_x -= 3
+        top_wall_left_x -= 3
+        right_wall_top_x -= 3
+        right_wall_bottom_x -= 3
+        bottom_wall_right_x -= 3
+        bottom_wall_left_x -= 3
+        inside_x -= 3
+        projectile_x -= 3
     if keys[pygame.K_a]:
         surrounding1_x += 3
         surrounding2_x += 3
@@ -165,8 +171,11 @@ while game_over == False:
 
     enemy_rect = pygame.Rect(enemy1_x, enemy1_y, 30, 30)
     inside_rect = pygame.Rect(inside_x, inside_y, 1200, 1100)
-    cursor_x, cursor_y = pygame.mouse.get_pos()
-    projectile_rect = pygame.Rect(projectile_x, projectile_y, 20, 20)
+    
+
+    #cursor_rect = pygame.Rect(cursor_x - 10, cursor_y - 10, 20, 20)
+
+    
 
     if player_rect.colliderect(enemy_rect):
         player_health_width -= 0.35
@@ -175,16 +184,16 @@ while game_over == False:
     if player_health_width < 20:
         health_color_green = (204, 22, 2)
     
-    if event.type == pygame.MOUSEBUTTONDOWN:
-        left = pygame.mouse.get_pressed()
-        if left:
-            click_count += 1
-            print('its working', click_count)
-            pygame.draw.rect(display, projectile_color, projectile_rect)
+#    if event.type == pygame.MOUSEBUTTONDOWN:
+
+        #left = pygame.mouse.get_pressed()
+        #if left:
+         #   click_count += 1
+          #  print('its working', click_count)
+           # pygame.draw.rect(display, projectile_color, projectile_rect)
 
  #   if pygame.MOUSEBUTTONDOWN == True:
   #      bullet.draw_bullet(display)
-
     
     player_health_rect = pygame.Rect(player_health_x, player_health_y, player_health_width, player_health_height)
 
@@ -195,7 +204,7 @@ while game_over == False:
     pygame.draw.rect(display, surrounding_color, (surrounding2_x, surrounding2_y, 70, 70))
     pygame.draw.rect(display, enemy_color, enemy_rect)
    # pygame.draw.line(display, bullet_color, (player_x + 20, player_y + 20), (cursor_x, cursor_y), 5)
-    pygame.draw.rect(display, projectile_color, projectile_rect)
+    #pygame.draw.rect(display, projectile_color, projectile_rect)
     pygame.draw.rect(display, color_player, player_rect)
     pygame.draw.rect(display, health_color_red, player_health_rect_red)
     pygame.draw.rect(display, health_color_green, player_health_rect)
@@ -203,6 +212,16 @@ while game_over == False:
     pygame.draw.line(display, wall_color, (top_wall_left_x, top_wall_left_y), (top_wall_right_x, top_wall_right_y), 10)
     pygame.draw.line(display, wall_color, (right_wall_top_x, right_wall_top_y), (right_wall_bottom_x, right_wall_bottom_y), 10)
     pygame.draw.line(display, wall_color, (bottom_wall_left_x, bottom_wall_left_y), (bottom_wall_right_x, bottom_wall_right_y), 10)
+    #pygame.draw.rect(display, projectile_color, cursor_rect)
+    pygame.draw.rect(display, projectile_color, cursor_rect)
+    if event.type == pygame.MOUSEBUTTONDOWN:
+            pygame.draw.rect(display, projectile_color, projectile_rect)
+            #projectile_list.append(cursor_rect)
+            for i in range(2):
+                projectile_list.append(cursor_rect)
+            print(projectile_list)
+            projectile_list.pop(0)
+    
 
     pygame.display.update()
 
