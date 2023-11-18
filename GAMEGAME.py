@@ -173,7 +173,7 @@ while game_over == False:
     inside_rect = pygame.Rect(inside_x, inside_y, 1200, 1100)
     
 
-    #cursor_rect = pygame.Rect(cursor_x - 10, cursor_y - 10, 20, 20)
+    cursor_rect = pygame.Rect(cursor_x - 10, cursor_y - 10, 20, 20)
 
     
 
@@ -206,19 +206,18 @@ while game_over == False:
    # pygame.draw.line(display, bullet_color, (player_x + 20, player_y + 20), (cursor_x, cursor_y), 5)
     #pygame.draw.rect(display, projectile_color, projectile_rect)
     pygame.draw.rect(display, color_player, player_rect)
-    pygame.draw.rect(display, health_color_red, player_health_rect_red)
-    pygame.draw.rect(display, health_color_green, player_health_rect)
     pygame.draw.line(display, wall_color, (left_wall_top_x, left_wall_top_y), (left_wall_bottom_x, left_wall_bottom_y), 10)
     pygame.draw.line(display, wall_color, (top_wall_left_x, top_wall_left_y), (top_wall_right_x, top_wall_right_y), 10)
     pygame.draw.line(display, wall_color, (right_wall_top_x, right_wall_top_y), (right_wall_bottom_x, right_wall_bottom_y), 10)
     pygame.draw.line(display, wall_color, (bottom_wall_left_x, bottom_wall_left_y), (bottom_wall_right_x, bottom_wall_right_y), 10)
+    pygame.draw.rect(display, health_color_red, player_health_rect_red)
+    pygame.draw.rect(display, health_color_green, player_health_rect)
+
     #pygame.draw.rect(display, projectile_color, cursor_rect)
-    pygame.draw.rect(display, projectile_color, cursor_rect)
     if event.type == pygame.MOUSEBUTTONDOWN:
-            pygame.draw.rect(display, projectile_color, projectile_rect)
-            #projectile_list.append(cursor_rect)
-            for i in range(2):
-                projectile_list.append(cursor_rect)
+            projectile_list.append(cursor_rect)
+            for i in projectile_list:
+                pygame.draw.rect(display, projectile_color, projectile_rect)
             print(projectile_list)
             projectile_list.pop(0)
     
