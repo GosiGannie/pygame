@@ -60,10 +60,6 @@ projectile_x = cursor_x
 projectile_y = cursor_y
 projectile_rect = pygame.Rect(projectile_x, projectile_y, 20, 20)
 
-projectile_list = []
-
-click_count = 0
-
 #bullets = []
 
 #class Bullet():
@@ -72,9 +68,9 @@ click_count = 0
    #     self.bullet_y = bullet_y
     #    self.bullet_speed
     #def draw_bullet(self, surface):
-     #   bullet_dx, bullet_dy = cursor_x - player_x, cursor_y - player_y
-      #  bullet_dist = math.hypot(bullet_dx, bullet_dy)
-       # bullet_dx, bullet_dy = bullet_dx / bullet_dist, bullet_dy / bullet_dist
+     #   bullet_enemy_dx, bullet_enemy_dy = cursor_x - player_x, cursor_y - player_y
+      #  bullet_enemy_dist = math.hypot(bullet_enemy_dx, bullet_enemy_dy)
+       # bullet_enemy_dx, bullet_enemy_dy = bullet_enemy_dx / bullet_enemy_dist, bullet_enemy_dy / bullet_enemy_dist
         #pygame.draw.rect(display, bullet_color, bullet_rect)
 #bullet_width_height = 3
 #bullet_rect = pygame.Rect(bullet_x + 20, bullet_y + 20, bullet_width_height, bullet_width_height)
@@ -94,6 +90,25 @@ objects_y = [surrounding1_y, surrounding2_y, enemy1_y, left_wall_top_y, left_wal
 cursor_x, cursor_y = pygame.mouse.get_pos()
 cursor_rect = pygame.Rect(cursor_x - 10, cursor_y - 10, 20, 20)
 projectile_rect = pygame.Rect(projectile_x, projectile_y, 20, 20)
+
+projectile_list = []
+
+def projectile():
+    global projectile_x
+    global projectile_y
+    if event.type == pygame.MOUSEBUTTONDOWN:
+        pygame.draw.rect(display, projectile_color, cursor_rect)
+        projectile_dx, projectile_dy = projectile_x - player_x, projectile_y - player_y
+        projectile_dist = math.hypot(projectile_dx, projectile_dy)
+        projectile_dx, projectile_dy = projectile_dx / projectile_dist, projectile_dy / projectile_dist
+        projectile_x += projectile_dx
+        projectile_y += projectile_dy
+        projectile_rect = pygame.Rect(projectile_x, projectile_y, 20, 20)
+        #projectile_list.append(projectile_rect)
+        #for i in projectile_list:
+        pygame.draw.rect(display, projectile_color, projectile_rect)
+        #projectile_list.pop(0)
+        
 
 clock = pygame.time.Clock()
 
@@ -162,17 +177,17 @@ while game_over == False:
         inside_y += 3
         projectile_y += 3
 
-    dx, dy = player_x - enemy1_x, player_y - enemy1_y
-    dist = math.hypot(dx, dy)
-    dx, dy = dx / dist, dy / dist
+    enemy_dx, enemy_dy = player_x - enemy1_x, player_y - enemy1_y
+    enemy_dist = math.hypot(enemy_dx, enemy_dy)
+    enemy_dx, enemy_dy = enemy_dx / enemy_dist, enemy_dy / enemy_dist
 
-    enemy1_x += dx
-    enemy1_y += dy
+    enemy1_x += enemy_dx
+    enemy1_y += enemy_dy
 
     enemy_rect = pygame.Rect(enemy1_x, enemy1_y, 30, 30)
     inside_rect = pygame.Rect(inside_x, inside_y, 1200, 1100)
     
-
+    cursor_x, cursor_y = pygame.mouse.get_pos()
     cursor_rect = pygame.Rect(cursor_x - 10, cursor_y - 10, 20, 20)
 
     
@@ -183,17 +198,6 @@ while game_over == False:
         health_color_green = (182, 191, 0)
     if player_health_width < 20:
         health_color_green = (204, 22, 2)
-    
-#    if event.type == pygame.MOUSEBUTTONDOWN:
-
-        #left = pygame.mouse.get_pressed()
-        #if left:
-         #   click_count += 1
-          #  print('its working', click_count)
-           # pygame.draw.rect(display, projectile_color, projectile_rect)
-
- #   if pygame.MOUSEBUTTONDOWN == True:
-  #      bullet.draw_bullet(display)
     
     player_health_rect = pygame.Rect(player_health_x, player_health_y, player_health_width, player_health_height)
 
@@ -212,15 +216,8 @@ while game_over == False:
     pygame.draw.line(display, wall_color, (bottom_wall_left_x, bottom_wall_left_y), (bottom_wall_right_x, bottom_wall_right_y), 10)
     pygame.draw.rect(display, health_color_red, player_health_rect_red)
     pygame.draw.rect(display, health_color_green, player_health_rect)
-
-    #pygame.draw.rect(display, projectile_color, cursor_rect)
-    if event.type == pygame.MOUSEBUTTONDOWN:
-            projectile_list.append(cursor_rect)
-            for i in projectile_list:
-                pygame.draw.rect(display, projectile_color, projectile_rect)
-            print(projectile_list)
-            projectile_list.pop(0)
     
+    projectile()
 
     pygame.display.update()
 
