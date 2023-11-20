@@ -6,6 +6,11 @@ from typing import List
 
 pygame.init()
 
+screen_x = 1200
+screen_y = 900
+
+display = pygame.display.set_mode([screen_x, screen_y])
+
 @dataclass
 class Color():
     r: int
@@ -19,11 +24,6 @@ class Color():
 class Coordinate:
     x: int
     y: int
-
-screen_x = 1200
-screen_y = 900
-
-display = pygame.display.set_mode([screen_x, screen_y])
 
 player_x = 600
 player_y = 400
@@ -76,6 +76,27 @@ projectile_x = cursor_x
 projectile_y = cursor_y
 projectile_rect = pygame.Rect(projectile_x, projectile_y, 20, 20)
 
+'''
+class Enemy():
+    def __init__(self, start_pos: Coordinate, direction: float, speed: int, color: Color, health: int):
+        self.size = (30, 30)
+        self.direction = direction
+        self.speed = speed
+        self.color = color
+        self.health = health
+        self.hitbox = pygame.Rect(start_pos, self.size)
+
+    def update(self):
+        diff_x = math.cos(self.direction) * self.speed
+        diff_y = math.sin(self.direction) * self.speed
+        self.hitbox.x -= diff_x
+        self.hitbox.y -= diff_y
+        return self
+    
+    def draw(self, display):
+'''
+
+
 RELOAD_DELAY_TYPE1 = 600
 last_shot = pygame.time.get_ticks()
 
@@ -85,7 +106,7 @@ class Projectile():
         self.direction = direction
         self.speed = speed
         self.color = color
-        self.hitbox = pygame.Rect(start_pos, self.size)
+        self.hitbox = pygame.rect.Rect(start_pos, self.size)
 
     def update(self):
         diff_x = math.cos(self.direction) * self.speed
@@ -119,8 +140,9 @@ objects_y = [surrounding1_y, surrounding2_y, enemy1_y, left_wall_top_y, left_wal
 
 cursor_x, cursor_y = pygame.mouse.get_pos()
 cursor_rect = pygame.Rect(cursor_x - 10, cursor_y - 10, 20, 20)
-projectile_rect = pygame.Rect(projectile_x, projectile_y, 20, 20)        
+projectile_rect = pygame.Rect(projectile_x, projectile_y, 20, 20)    
 
+FPS = 90
 clock = pygame.time.Clock()
 
 game_over = False
@@ -250,6 +272,6 @@ while game_over == False:
 
     pygame.display.update()
 
-    clock.tick(90)
+    clock.tick(FPS)
 
 pygame.quit()
