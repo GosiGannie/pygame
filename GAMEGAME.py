@@ -3,7 +3,6 @@ import random
 import math
 from dataclasses import dataclass
 from typing import List
-#from settings import *
 
 pygame.init()
 
@@ -26,6 +25,8 @@ class Coordinate:
     x: int
     y: int
 
+
+#Colors
 color_player = Color(47, 94, 161)
 enemy_color = Color(102, 3, 3)
 surrounding_color = (22, 71, 15)
@@ -35,51 +36,54 @@ health_color_red = (100, 0, 0)
 health_color_green = (38, 196, 8)
 projectile_color = Color(47, 94, 161)
 
+
 #playerwhatewe
 
-#enemy1_x = 300
-#enemy1_y = 700
-#enemy_rect = pygame.Rect(enemy1_x, enemy1_y, 30, 30)
+
+#Surroundings
+surrounding1_x = random.randint(-100, 1240)
+surrounding1_y = random.randint(-100, 940)
+
+surrounding2_x = random.randint(-100, 1230)
+surrounding2_y = random.randint(-100, 930)
+
+surrounding3_x = random.randint(-100, 1240)
+surrounding3_y = random.randint(-100, 940)
+
+surrounding4_x = random.randint(-100, 1230)
+surrounding4_y = random.randint(-100, 930)
+
+surrounding5_x = random.randint(-100, 1240)
+surrounding5_y = random.randint(-100, 940)
+
+surrounding6_x = random.randint(-100, 1230)
+surrounding6_y = random.randint(-100, 930)
+
+#Walls
+left_wall_top_x = -100
+left_wall_top_y = -100
+left_wall_bottom_x = -100
+left_wall_bottom_y = 1000
+
+top_wall_left_x = -100
+top_wall_left_y = -100
+top_wall_right_x = 1300
+top_wall_right_y = -100
+
+right_wall_top_x = 1300
+right_wall_top_y = -100
+right_wall_bottom_x = 1300
+right_wall_bottom_y = 1000
+
+bottom_wall_left_x = -100
+bottom_wall_left_y = 1000
+bottom_wall_right_x = 1300
+bottom_wall_right_y = 1000
 
 
+inside_x = -100
+inside_y = -100
 
-surrounding1_x = random.randint(0, 1140)
-surrounding1_y = random.randint(0, 1040)
-
-surrounding2_x = random.randint(0, 1130)
-surrounding2_y = random.randint(0, 1030)
-
-left_wall_top_x = 0
-left_wall_top_y = 0
-left_wall_bottom_x = 0
-left_wall_bottom_y = 1100
-
-top_wall_left_x = 0
-top_wall_left_y = 0
-top_wall_right_x = 1200
-top_wall_right_y = 0
-
-right_wall_top_x = 1200
-right_wall_top_y = 0
-right_wall_bottom_x = 1200
-right_wall_bottom_y = 1100
-
-bottom_wall_left_x = 0
-bottom_wall_left_y = 1100
-bottom_wall_right_x = 1200
-bottom_wall_right_y = 1100
-
-inside_x = 0
-inside_y = 0
-inside_rect = pygame.Rect(inside_x, inside_y, 1200, 1100)
-
-cursor_x, cursor_y = pygame.mouse.get_pos()
-projectile_x = cursor_x
-projectile_y = cursor_y
-projectile_rect = pygame.Rect(projectile_x, projectile_y, 20, 20)
-
-RELOAD_DELAY_TYPE2 = 3000
-last_enemy_spawn = pygame.time.get_ticks()
 
 class Player:
     def __init__(self, x: int, y: int, width: int, height: int, color: Color):
@@ -90,30 +94,43 @@ class Player:
         self.color = color
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
     
-    def main(self, display):
+    def draw(self, display):
         pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.rect)
 
-player = Player(600, 400, 40, 40, color_player)
+player = Player(600, 450, 40, 40, color_player)
 
-class Enemy:
-    def __init__(self, x: int, y: int, width: int, height: int, color: Color):
+
+class Enemy():
+    def __init__(self, x: int, y: int, width: int, height: int, color: Color, direction: float, speed: int):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.color = color
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.direction = direction
+        self.speed = speed
 
-    def main(self, display):
-        pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.rect)
+    def draw(self, display):
+        pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), (self.hitbox.x + display_scroll[0], self.hitbox.y + display_scroll[1], self.width, self.height))
+        return self
 
-enemy = Enemy(300, 700, 30, 30, enemy_color)
+    def update(self):
+        diff_x = math.cos(self.direction) * self.speed
+        diff_y = math.sin(self.direction) * self.speed
+        self.hitbox.x -= diff_x
+        self.hitbox.y -= diff_y
+        return self
+    
+    def move(self, diff_x, diff_y):
+        self.hitbox.x -= diff_x
+        self.hitbox.y -= diff_y
 
+enemies: List[Enemy] = []
 
-#enemy class trials
+RELOAD_DELAY_TYPE2 = 1000
+last_enemy_spawn = pygame.time.get_ticks()
 
-RELOAD_DELAY_TYPE1 = 600
-last_shot = pygame.time.get_ticks()
 
 class Projectile():
     def __init__(self, start_pos: Coordinate, direction: float, speed: int, color: Color):
@@ -122,33 +139,35 @@ class Projectile():
         self.speed = speed
         self.color = color
         self.hitbox = pygame.rect.Rect(start_pos, self.size)
-
+    
+    def draw(self, display):
+        pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.hitbox)
+        return self
+    
     def update(self):
         diff_x = math.cos(self.direction) * self.speed
         diff_y = math.sin(self.direction) * self.speed
         self.hitbox.x += diff_x
         self.hitbox.y += diff_y
         return self
-    
-    def draw(self, display):
-        pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.hitbox)
-        return self
-    
+
     def move(self, diff_x, diff_y):
         self.hitbox.x += diff_x
         self.hitbox.y += diff_y
 
-projectiles: List[Projectile] = []
+projectiles: List[Projectile] = []  
 
-#objects_x = [surrounding1_x, surrounding2_x, enemy1_x, left_wall_top_x, left_wall_bottom_x, top_wall_right_x, top_wall_left_x, right_wall_top_x, right_wall_bottom_x, bottom_wall_right_x, bottom_wall_left_x, inside_x, projectile_x]
-#objects_y = [surrounding1_y, surrounding2_y, enemy1_y, left_wall_top_y, left_wall_bottom_y, top_wall_right_y, top_wall_left_y, right_wall_top_y, right_wall_bottom_y, bottom_wall_right_y, bottom_wall_left_y, inside_y, projectile_y]
+RELOAD_DELAY_TYPE1 = 600
+last_shot = pygame.time.get_ticks()
 
-cursor_x, cursor_y = pygame.mouse.get_pos()
-cursor_rect = pygame.Rect(cursor_x - 10, cursor_y - 10, 20, 20)
-projectile_rect = pygame.Rect(projectile_x, projectile_y, 20, 20)    
 
+#Time
 FPS = 90
+
 clock = pygame.time.Clock()
+
+
+display_scroll = [0, 0]
 
 game_over = False
 
@@ -157,90 +176,39 @@ while game_over == False:
         if event.type == pygame.QUIT:
             game_over = True
 
+    #General movement
     keys = pygame.key.get_pressed()
     if keys[pygame.K_d]:
-        surrounding1_x -= 3
-        surrounding2_x -= 3
-        #enemy1_x -= 3
-        left_wall_top_x -= 3
-        left_wall_bottom_x -= 3
-        top_wall_right_x -= 3
-        top_wall_left_x -= 3
-        right_wall_top_x -= 3
-        right_wall_bottom_x -= 3
-        bottom_wall_right_x -= 3
-        bottom_wall_left_x -= 3
-        inside_x -= 3
-        projectile_x -= 3
-        [p.move(-3, 0) for p in projectiles]
-        enemy.x -= 3
+        display_scroll[0] -=3
 
     if keys[pygame.K_a]:
-        surrounding1_x += 3
-        surrounding2_x += 3
-        #enemy1_x += 3
-        left_wall_top_x += 3
-        left_wall_bottom_x += 3
-        top_wall_right_x += 3
-        top_wall_left_x += 3
-        right_wall_top_x += 3
-        right_wall_bottom_x += 3
-        bottom_wall_right_x += 3
-        bottom_wall_left_x += 3
-        inside_x += 3
-        projectile_x += 3
-        [p.move(3, 0) for p in projectiles]
-        enemy.x += 3
+        display_scroll[0] += 3
 
     if keys[pygame.K_s]:
-        surrounding1_y -= 3
-        surrounding2_y -= 3
-        #enemy1_y -= 3
-        left_wall_top_y -= 3
-        left_wall_bottom_y -= 3
-        top_wall_right_y -= 3
-        top_wall_left_y -= 3
-        right_wall_top_y -= 3
-        right_wall_bottom_y -= 3
-        bottom_wall_right_y -= 3
-        bottom_wall_left_y -= 3
-        inside_y -= 3
-        projectile_y -= 3
-        [p.move(0, -3) for p in projectiles]
-        enemy.y -= 3
+        display_scroll[1] -= 3
 
     if keys[pygame.K_w]:
-        surrounding1_y += 3
-        surrounding2_y += 3
-        #enemy1_y += 3   
-        left_wall_top_y += 3
-        left_wall_bottom_y += 3
-        top_wall_right_y += 3
-        top_wall_left_y += 3
-        right_wall_top_y += 3
-        right_wall_bottom_y += 3
-        bottom_wall_right_y += 3
-        bottom_wall_left_y += 3
-        inside_y += 3
-        projectile_y += 3
-        [p.move(0, 3) for p in projectiles]
-        enemy.y += 3
-
-
-    #enemy_dx, enemy_dy = player_x - enemy1_x, player_y - enemy1_y
-    #enemy_dist = math.hypot(enemy_dx, enemy_dy)
-    #enemy_dx, enemy_dy = enemy_dx / enemy_dist, enemy_dy / enemy_dist
-
-    #enemy1_x += enemy_dx
-    #enemy1_y += enemy_dy
-
-    #enemy_rect = pygame.Rect(enemy1_x, enemy1_y, 30, 30)
-    inside_rect = pygame.Rect(inside_x, inside_y, 1200, 1100)
+        display_scroll[1] += 3
     
-    cursor_x, cursor_y = pygame.mouse.get_pos()
-    cursor_rect = pygame.Rect(cursor_x - 10, cursor_y - 10, 20, 20)
 
-    
+    now = pygame.time.get_ticks()
+
+    #Enemy moveent
+    if RELOAD_DELAY_TYPE2 < now + last_enemy_spawn:
+        enemy = Enemy(random.randint(-100, 1200), random.randint(-100, 900), 30, 30, enemy_color, 0.0, 3)
+        (enemy_dx, enemy_dy) = (enemy.x, enemy.y) - pygame.Vector2(600, 450)
+        enemy_angle = math.atan2(enemy_dy, enemy_dx)
+        enemy.direction = enemy_angle
+        #enemy = Enemy(random.randint(-100, 1200), random.randint(-100, 900), 30, 30, enemy_color, enemy_angle, 3)
+        enemies.append(enemy)
+        now = last_enemy_spawn
+
+    else:
+        pass
+
+
+
+    inside_rect = pygame.Rect(inside_x + display_scroll[0], inside_y + display_scroll[1], 1400, 1100)
 
     #if player_rect.colliderect(enemy_rect):
     #    player_health_width -= 0.35
@@ -250,25 +218,30 @@ while game_over == False:
         #health_color_green = (204, 22, 2)
 
 
+
     #prijectile movement
 
 
+    #Draws
     display.fill((30, 20, 0))
-
     pygame.draw.rect(display, inside_color, inside_rect)
-    pygame.draw.rect(display, surrounding_color, (surrounding1_x, surrounding1_y, 60, 60))
-    pygame.draw.rect(display, surrounding_color, (surrounding2_x, surrounding2_y, 70, 70))
-    #pygame.draw.rect(display, enemy_color, enemy_rect)
-   # pygame.draw.rect(display, color_player, player_rect)
-    enemy.main(display)
-    player.main(display)
-    pygame.draw.line(display, wall_color, (left_wall_top_x, left_wall_top_y), (left_wall_bottom_x, left_wall_bottom_y), 10)
-    pygame.draw.line(display, wall_color, (top_wall_left_x, top_wall_left_y), (top_wall_right_x, top_wall_right_y), 10)
-    pygame.draw.line(display, wall_color, (right_wall_top_x, right_wall_top_y), (right_wall_bottom_x, right_wall_bottom_y), 10)
-    pygame.draw.line(display, wall_color, (bottom_wall_left_x, bottom_wall_left_y), (bottom_wall_right_x, bottom_wall_right_y), 10)
+    pygame.draw.rect(display, surrounding_color, (surrounding1_x + display_scroll[0], surrounding1_y + display_scroll[1], 60, 60))
+    pygame.draw.rect(display, surrounding_color, (surrounding2_x + display_scroll[0], surrounding2_y + display_scroll[1], 70, 70))
+    pygame.draw.rect(display, surrounding_color, (surrounding3_x + display_scroll[0], surrounding3_y + display_scroll[1], 30, 30))
+    pygame.draw.rect(display, surrounding_color, (surrounding4_x + display_scroll[0], surrounding4_y + display_scroll[1], 40, 40))   
+    pygame.draw.rect(display, surrounding_color, (surrounding5_x + display_scroll[0], surrounding5_y + display_scroll[1], 50, 50))
+    pygame.draw.rect(display, surrounding_color, (surrounding6_x + display_scroll[0], surrounding6_y + display_scroll[1], 70, 70))
+    for enemy in enemies:
+        enemy.update().draw(display)
+    player.draw(display)
+    pygame.draw.line(display, wall_color, (left_wall_top_x + display_scroll[0], left_wall_top_y + display_scroll[1]), (left_wall_bottom_x + display_scroll[0], left_wall_bottom_y + display_scroll[1]), 10)
+    pygame.draw.line(display, wall_color, (top_wall_left_x + display_scroll[0], top_wall_left_y + display_scroll[1]), (top_wall_right_x + display_scroll[0], top_wall_right_y + display_scroll[1]), 10)
+    pygame.draw.line(display, wall_color, (right_wall_top_x + display_scroll[0], right_wall_top_y + display_scroll[1]), (right_wall_bottom_x + display_scroll[0], right_wall_bottom_y + display_scroll[1]), 10)
+    pygame.draw.line(display, wall_color, (bottom_wall_left_x + display_scroll[0], bottom_wall_left_y + display_scroll[1]), (bottom_wall_right_x + display_scroll[0], bottom_wall_right_y + display_scroll[1]), 10)
    # pygame.draw.rect(display, health_color_red, player_health_rect_red)
    # pygame.draw.rect(display, health_color_green, player_health_rect)
     [p.update().draw(display) for p in projectiles]
+
 
     pygame.display.update()
 
