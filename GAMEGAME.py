@@ -21,7 +21,7 @@ class Color():
         return (self.r, self.g, self.b)
     
 @dataclass
-class Coordinate:
+class Display_scroll:
     x: int
     y: int
 
@@ -55,27 +55,6 @@ surrounding5_y = random.randint(-100, 940)
 
 surrounding6_x = random.randint(-100, 1230)
 surrounding6_y = random.randint(-100, 930)
-
-#Walls
-left_wall_top_x = -100
-left_wall_top_y = -100
-left_wall_bottom_x = -100
-left_wall_bottom_y = 1000
-
-top_wall_left_x = -100
-top_wall_left_y = -100
-top_wall_right_x = 1300
-top_wall_right_y = -100
-
-right_wall_top_x = 1300
-right_wall_top_y = -100
-right_wall_bottom_x = 1300
-right_wall_bottom_y = 1000
-
-bottom_wall_left_x = -100
-bottom_wall_left_y = 1000
-bottom_wall_right_x = 1300
-bottom_wall_right_y = 1000
 
 
 inside_x = -100
@@ -122,18 +101,19 @@ last_healing = pygame.time.get_ticks()
 
 
 class Enemy():
-    def __init__(self, x: int, y: int, width: int, height: int, color: Color, direction: float, speed: int):
-        self.x = x
-        self.y = y
+    def __init__(self, x: int, y: int, width: int, height: int, color: Color, direction: float, speed: int, display_scroll: Display_scroll):
+        self.x = x + display_scroll.x
+        self.y = y + display_scroll.y
         self.width = width
         self.height = height
         self.color = color
         self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
         self.direction = direction
         self.speed = speed
+        self.display_scroll = display_scroll
 
     def draw(self, display):
-        pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), (self.hitbox.x + display_scroll[0], self.hitbox.y + display_scroll[1], self.width, self.height))
+        pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.hitbox)
         return self
 
     def update(self):
@@ -160,7 +140,7 @@ class Projectile():
         self.direction = direction
         self.speed = speed
         self.color = color
-        self.hitbox = pygame.rect.Rect((self.x + display_scroll[0], self.y + display_scroll[1], 15, 15))
+        self.hitbox = pygame.rect.Rect((self.x + display_scroll.x, self.y + display_scroll.y, 15, 15))
     
     def draw(self, display):
         pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.hitbox)
@@ -183,13 +163,16 @@ RELOAD_DELAY_TYPE1 = 600
 last_shot = pygame.time.get_ticks()
 
 
+
+
+
 #Time
 FPS = 90
 
 clock = pygame.time.Clock()
 
 
-display_scroll = [0, 0]
+display_scroll = Display_scroll(0, 0)
 
 game_over = False
 
@@ -201,24 +184,24 @@ while game_over == False:
     #General movement
     keys = pygame.key.get_pressed()
     if keys[pygame.K_d]:
-        display_scroll[0] -=3
+        display_scroll.x -=3
 
     if keys[pygame.K_a]:
-        display_scroll[0] += 3
+        display_scroll.x += 3
 
     if keys[pygame.K_s]:
-        display_scroll[1] -= 3
+        display_scroll.y -= 3
 
     if keys[pygame.K_w]:
-        display_scroll[1] += 3
+        display_scroll.y += 3
     
 
     now = pygame.time.get_ticks()
 
     #Enemy movement
     if now - last_enemy_spawn > RELOAD_DELAY_TYPE2:        
-        enemy = Enemy(random.randint(-100, 1200), random.randint(-100, 900), 30, 30, enemy_color, 0.0, 2)
-        (enemy_dx, enemy_dy) = (enemy.x, enemy.y) - pygame.Vector2(600 - display_scroll[0], 450 - display_scroll[1])
+        enemy = Enemy(random.randint(-100, 1200), random.randint(-100, 900), 30, 30, enemy_color, 0.0, 2, display_scroll)
+        (enemy_dx, enemy_dy) = (enemy.x, enemy.y) - pygame.Vector2(player.rect.center)
         enemy_angle = math.atan2(enemy_dy, enemy_dx)
         enemy.direction = enemy_angle
         enemies.append(enemy)
@@ -229,7 +212,7 @@ while game_over == False:
 
 
 
-    inside_rect = pygame.Rect(inside_x + display_scroll[0], inside_y + display_scroll[1], 1400, 1100)
+    inside_rect = pygame.Rect(inside_x + display_scroll.x, inside_y + display_scroll.y, 1400, 1100)
 
     for enemy in enemies:
         if player.rect.colliderect(enemy.hitbox):
@@ -251,7 +234,7 @@ while game_over == False:
 
 
 
-    #prijectile movement
+    #Projectile movement
     if event.type == pygame.MOUSEBUTTONDOWN:
         if pygame.mouse.get_pressed():
             now = pygame.time.get_ticks()
@@ -268,16 +251,16 @@ while game_over == False:
     #Draws
     display.fill((30, 20, 0))
     pygame.draw.rect(display, inside_color, inside_rect)
-    pygame.draw.rect(display, surrounding_color, (surrounding1_x + display_scroll[0], surrounding1_y + display_scroll[1], 60, 60))
-    pygame.draw.rect(display, surrounding_color, (surrounding2_x + display_scroll[0], surrounding2_y + display_scroll[1], 70, 70))
-    pygame.draw.rect(display, surrounding_color, (surrounding3_x + display_scroll[0], surrounding3_y + display_scroll[1], 30, 30))
-    pygame.draw.rect(display, surrounding_color, (surrounding4_x + display_scroll[0], surrounding4_y + display_scroll[1], 40, 40))   
-    pygame.draw.rect(display, surrounding_color, (surrounding5_x + display_scroll[0], surrounding5_y + display_scroll[1], 50, 50))
-    pygame.draw.rect(display, surrounding_color, (surrounding6_x + display_scroll[0], surrounding6_y + display_scroll[1], 70, 70))
+    pygame.draw.rect(display, surrounding_color, (surrounding1_x + display_scroll.x, surrounding1_y + display_scroll.y, 60, 60))
+    pygame.draw.rect(display, surrounding_color, (surrounding2_x + display_scroll.x, surrounding2_y + display_scroll.y, 70, 70))
+    pygame.draw.rect(display, surrounding_color, (surrounding3_x + display_scroll.x, surrounding3_y + display_scroll.y, 30, 30))
+    pygame.draw.rect(display, surrounding_color, (surrounding4_x + display_scroll.x, surrounding4_y + display_scroll.y, 40, 40))   
+    pygame.draw.rect(display, surrounding_color, (surrounding5_x + display_scroll.x, surrounding5_y + display_scroll.y, 50, 50))
+    pygame.draw.rect(display, surrounding_color, (surrounding6_x + display_scroll.x, surrounding6_y + display_scroll.y, 70, 70))
     for enemy in enemies:
         enemy.update().draw(display)
     player.draw(display)
-    pygame.draw.rect(display, wall_color, (-100 + display_scroll[0], -100 + display_scroll[1], 1400, 1100), 10)
+    pygame.draw.rect(display, wall_color, (-100 + display_scroll.x, -100 + display_scroll.y, 1400, 1100), 10)
     pygame.draw.rect(display, (255, 0, 0), (20, 20, 400, 35))
     player.draw_health_bar(display)
     for p in projectiles:
