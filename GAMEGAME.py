@@ -3,6 +3,7 @@ import random
 import math
 from dataclasses import dataclass
 from typing import List
+import sys
 
 pygame.init()
 
@@ -91,7 +92,11 @@ class Player:
         self.display_scroll = display_scroll
     
     def draw(self, display):
-        pygame.draw.rect(display, (self.player_color.r, self.player_color.g, self.player_color.b), self.rect)
+        #pygame.draw.rect(display, (self.player_color.r, self.player_color.g, self.player_color.b), self.rect)
+        player_img = pygame.image.load('Sprites/Hero/idle_down (1).png').convert_alpha()
+        player_img = pygame.transform.scale(player_img, (135, 125))
+        display.blit(player_img, (self.rect.centerx - 67, self.rect.centery - 64, self.width, self.height))
+
         
     def take_damage(self, amount: int):
         if self.current_hp > 0:
@@ -109,7 +114,7 @@ class Player:
         pygame.draw.rect(display, (self.health_bar_color.r, self.health_bar_color.g, self.health_bar_color.b), (20, 20, self.current_hp / self.health_ratio, 35))
         pygame.draw.rect(display, (255, 255, 255), (20, 20, self.health_bar_lenth, 35), 4)
 
-player = Player(600, 450, 50, 50, color_player, 400, 400, 400, health_color_green, display_scroll)
+player = Player(575, 425, 45, 45, color_player, 400, 400, 400, health_color_green, display_scroll)
 
 RELOAD_DELAY_TYPE3 = 2000
 last_healing = pygame.time.get_ticks()
@@ -128,7 +133,10 @@ class Enemy():
         self.display_scroll = display_scroll
 
     def draw(self, display):
-        pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.hitbox)
+        #pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.hitbox)
+        enemy_img = pygame.image.load('Sprites/Monster/idle_down (1).png')
+        enemy_img = pygame.transform.scale(enemy_img, (90, 90))
+        display.blit(enemy_img, (self.hitbox.x - 30, self.hitbox.y - 30, self.width, self.height))
         return self
 
     def update(self):
@@ -140,7 +148,7 @@ class Enemy():
 
 enemies: List[Enemy] = []
 
-RELOAD_DELAY_TYPE2 = 1000
+RELOAD_DELAY_TYPE2 = 4000
 last_enemy_spawn = pygame.time.get_ticks()
 
 
@@ -154,7 +162,10 @@ class Projectile():
         self.hitbox = pygame.rect.Rect((self.x, self.y, 15, 15))
     
     def draw(self, display):
-        pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.hitbox)
+        #pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.hitbox)
+        projectile_img = pygame.image.load('Sprites/bullet.png')
+        projectile_img = pygame.transform.scale(projectile_img, (75, 75))
+        display.blit(projectile_img, (self.hitbox.x - 30, self.hitbox.y - 30, 15, 15))
         return self
     
     def update(self):
@@ -164,10 +175,12 @@ class Projectile():
         self.hitbox.y += diff_y
         return self
 
+
 projectiles: List[Projectile] = []  
 
 RELOAD_DELAY_TYPE1 = 600
 last_shot = pygame.time.get_ticks()
+
 
 
 #Time
@@ -259,17 +272,19 @@ while game_over == False:
             
         #General movement
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_d]:
-            display_scroll.x -=3
+        speed_factor = 3
+        
+        if keys[pygame.K_d] and player.rect.x < 1245 + display_scroll.x:
+            display_scroll.x -= speed_factor
 
-        if keys[pygame.K_a]:
-            display_scroll.x += 3
+        if keys[pygame.K_a] and player.rect.x > -93 + display_scroll.x:
+            display_scroll.x += speed_factor
 
-        if keys[pygame.K_s]:
-            display_scroll.y -= 3
+        if keys[pygame.K_s] and player.rect.y < 945 + display_scroll.y:
+            display_scroll.y -= speed_factor
 
-        if keys[pygame.K_w]:
-            display_scroll.y += 3
+        if keys[pygame.K_w] and player.rect.y > -93 + display_scroll.y:
+            display_scroll.y += speed_factor
         
 
         now = pygame.time.get_ticks()
@@ -282,14 +297,24 @@ while game_over == False:
             enemy.direction = enemy_angle
             enemies.append(enemy)
             last_enemy_spawn = now
+            
+            enemies_to_remove = []
+            for enemy in enemies:
+                if -100 - display_scroll.x >= enemy.hitbox.x >= 1200 - display_scroll.x and -100 - display_scroll.y >= enemy.hitbox.y >= 1000 - display_scroll.y:
+                    enemies_to_remove.append(enemy)
 
+            for enemy in enemies_to_remove:
+                enemies.remove(enemy)
 
         inside_rect = pygame.Rect(inside_x + display_scroll.x, inside_y + display_scroll.y, 1400, 1100)
 
+ 
         for enemy in enemies:
             if player.rect.colliderect(enemy.hitbox):
                 player.take_damage(1)
                 player.draw_health_bar(display)
+
+
             
         if now - last_healing > RELOAD_DELAY_TYPE3:
             player.get_healing(0.1)
@@ -311,15 +336,15 @@ while game_over == False:
             if pygame.mouse.get_pressed():
                 now = pygame.time.get_ticks()
                 if (now > last_shot + RELOAD_DELAY_TYPE1):
-                    (dx, dy) = pygame.mouse.get_pos() - pygame.Vector2(player.rect.center)
+                    (dx, dy) = pygame.mouse.get_pos() - pygame.Vector2((player.rect.center))
                     angle = math.atan2(dy, dx)
-                    projectile = Projectile(player.rect.x, player.rect.y, angle, 3, projectile_color)
+                    projectile = Projectile(player.rect.centerx, player.rect.centery, angle, 3, projectile_color)
                     projectiles.append(projectile)
                     last_shot = now
-                    print(player.draw(display))
 
 
-        if player.current_hp < 0.5:
+
+        if player.current_hp < 1:
             game_status = 'game_over'
 
 
@@ -334,12 +359,14 @@ while game_over == False:
         pygame.draw.rect(display, surrounding_color, (surrounding6_x + display_scroll.x, surrounding6_y + display_scroll.y, 70, 70))
         for enemy in enemies:
             enemy.update().draw(display)
+
+        for p in projectiles:
+            p.update().draw(display)
         player.draw(display)
         pygame.draw.rect(display, wall_color, (-100 + display_scroll.x, -100 + display_scroll.y, 1400, 1100), 10)
         pygame.draw.rect(display, (255, 0, 0), (20, 20, 400, 35))
         player.draw_health_bar(display)
-        for p in projectiles:
-            p.update().draw(display)
+        pygame.draw.rect(display, (0, 0, 0), (screen_x / 2, screen_y / 2, 2, 2))
 
         pygame.display.update()
 
