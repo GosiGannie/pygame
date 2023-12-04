@@ -73,11 +73,15 @@ inside_x = -100
 inside_y = -100
 
 
+#Stats
 strength_stat = 10
 defence_stat = 10
-max_hp_stat = 400
-health_regen_stat = 0.1
+max_hp_stat = 100
+health_regen_stat = 2
 
+enemy_damage = 10
+
+#Costs
 strength_cost = 5
 defence_cost = 5
 max_hp_cost = 5
@@ -138,10 +142,7 @@ class Player:
         pygame.draw.rect(display, (self.health_bar_color.r, self.health_bar_color.g, self.health_bar_color.b), (20, 20, self.current_hp / self.health_ratio, 35))
         pygame.draw.rect(display, (255, 255, 255), (20, 20, self.health_bar_length, 35), 4)
 
-player = Player(575, 425, 45, 45, color_player, max_hp_stat, 400, 400, health_color_green, display_scroll)
-
-RELOAD_DELAY_TYPE3 = 500
-last_healing = pygame.time.get_ticks()
+player = Player(575, 425, 45, 45, color_player, max_hp_stat, 100, 400, health_color_green, display_scroll)
 
 
 class Enemy():
@@ -193,9 +194,6 @@ class Enemy():
 
 enemies: List[Enemy] = []
 
-RELOAD_DELAY_TYPE2 = 4000
-last_enemy_spawn = pygame.time.get_ticks()
-
 
 class Projectile():
     def __init__(self, x: int, y: int, direction: float, speed: float, color: Color):
@@ -223,13 +221,21 @@ class Projectile():
 
 projectiles: List[Projectile] = []  
 
-RELOAD_DELAY_TYPE1 = 600
-last_shot = pygame.time.get_ticks()
-
-
 
 #Time
 FPS = 90
+
+RELOAD_DELAY_TYPE1 = 600
+RELOAD_DELAY_TYPE2 = 2000
+RELOAD_DELAY_TYPE3 = 500
+RELOAD_DELAY_TYPE4 = 400
+
+last_damage_take = pygame.time.get_ticks()
+last_shot = pygame.time.get_ticks()
+last_enemy_spawn = pygame.time.get_ticks()
+wave_start = pygame.time.get_ticks()
+last_healing = pygame.time.get_ticks()
+completed_wave_timer = pygame.time.get_ticks()
 
 clock = pygame.time.Clock()
 
@@ -318,17 +324,26 @@ def wave_completed():
 
 coins = 0
 
-def coin_counter():
+def game_screen():
     font_coin_counter = pygame.font.SysFont(None, 60)
+    font_game_timer = pygame.font.SysFont(None, 60)
+    font_max_hp = pygame.font.SysFont(None, 50)
 
     coin_count = font_coin_counter.render('Coins: {}'.format(coins), True, (255,215,0))
+    game_timer = font_game_timer.render('Wave Time: {}'.format(last_wave_start / 1000), True, (255, 255, 255))
+    max_hp_txt = font_max_hp.render('HP: {} / {}'.format(player.current_hp, player.max_hp), True, (255, 255, 255))
 
-    display.blit(coin_count, (screen_x - 300, 20, 20, 20))
+    display.blit(coin_count, (screen_x - 300, 20))
+    display.blit(game_timer, (screen_x / 2 - 150, 20))
+    display.blit(max_hp_txt, (25, 60))
     pygame.display.update()
 
 
 game_status = 'start_screen'
 
+
+
+new_wave_clicks = 0
 
 game_over = False
 
@@ -408,13 +423,16 @@ while game_over == False:
 
         if event.type == pygame.MOUSEBUTTONUP:
             if 880 <= mouse_coordinate_upgrades[0] <= 880 + 263 and 70 <= mouse_coordinate_upgrades[1] <= 70 + 65:
-                game_status = 'start_screen'
-
-#strength_buy_rect = pygame.Rect(250, 381, 99, 53)
-#defence_buy_rect = pygame.Rect(850, 381, 99, 53)
-#max_hp_buy_rect = pygame.Rect(250, 631, 99, 53)
-#health_regen_buy_rect = pygame.Rect(850, 631, 99, 53)
-
+                game_status = 'game'
+                wave_start = now
+                last_wave_start = now
+                new_wave_clicks += 1
+                for enemy in enemies:
+                    enemies.clear()
+                player.max_hp = max_hp_stat
+                player.current_hp = player.max_hp
+                player.health_bar_length = 400
+                
 
         #Buy buttons
         if strength_buy_rect.collidepoint(mouse_coordinate_upgrades):
@@ -434,14 +452,26 @@ while game_over == False:
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             #if pygame
-            if strength_buy_rect.x <= mouse_coordinate_upgrades[0] <= strength_buy_rect.x + strength_buy_rect.width and strength_buy_rect.y <= mouse_coordinate_upgrades[1] <= strength_buy_rect.y + strength_buy_rect.width:
-                strength_stat += 1
-            elif defence_buy_rect.x <= mouse_coordinate_upgrades[0] <= defence_buy_rect.x + defence_buy_rect.width and defence_buy_rect.y <= mouse_coordinate_upgrades[1] <= defence_buy_rect.y + defence_buy_rect.width:
-                defence_stat += 1
-            elif max_hp_buy_rect.x <= mouse_coordinate_upgrades[0] <= max_hp_buy_rect.x + max_hp_buy_rect.width and max_hp_buy_rect.y <= mouse_coordinate_upgrades[1] <= max_hp_buy_rect.y + max_hp_buy_rect.width:
-                max_hp_stat += 20
-            elif health_regen_buy_rect.x <= mouse_coordinate_upgrades[0] <= health_regen_buy_rect.x + health_regen_buy_rect.width and health_regen_buy_rect.y <= mouse_coordinate_upgrades[1] <= health_regen_buy_rect.y + health_regen_buy_rect.width:
-                health_regen_stat += 0.1
+            if coins >= strength_cost:
+                if strength_buy_rect.x <= mouse_coordinate_upgrades[0] <= strength_buy_rect.x + strength_buy_rect.width and strength_buy_rect.y <= mouse_coordinate_upgrades[1] <= strength_buy_rect.y + strength_buy_rect.width:
+                    strength_stat += 1
+                    coins -= strength_cost
+                    strength_cost += strength_cost - new_wave_clicks * 4
+            if coins >= defence_cost:
+                if defence_buy_rect.x <= mouse_coordinate_upgrades[0] <= defence_buy_rect.x + defence_buy_rect.width and defence_buy_rect.y <= mouse_coordinate_upgrades[1] <= defence_buy_rect.y + defence_buy_rect.width:
+                    defence_stat += 1
+                    coins -= defence_cost
+                    defence_cost += defence_cost / 2
+            if coins >= max_hp_cost:
+                if max_hp_buy_rect.x <= mouse_coordinate_upgrades[0] <= max_hp_buy_rect.x + max_hp_buy_rect.width and max_hp_buy_rect.y <= mouse_coordinate_upgrades[1] <= max_hp_buy_rect.y + max_hp_buy_rect.width:
+                    max_hp_stat += 20
+                    coins -= max_hp_cost
+                    max_hp_cost += max_hp_cost / 2
+            if coins >= health_regen_cost:
+                if health_regen_buy_rect.x <= mouse_coordinate_upgrades[0] <= health_regen_buy_rect.x + health_regen_buy_rect.width and health_regen_buy_rect.y <= mouse_coordinate_upgrades[1] <= health_regen_buy_rect.y + health_regen_buy_rect.width:
+                    health_regen_stat += 2
+                    coins -= health_regen_cost
+                    health_regen_cost += health_regen_cost / 2
 
         pygame.display.update()
 
@@ -449,17 +479,19 @@ while game_over == False:
     if game_status == 'wave_completed':
         wave_completed()
 
-        notnow = pygame.time.get_ticks()
+        now = pygame.time.get_ticks()
 
-        if notnow > 1000:
+        if now - completed_wave_timer> 1000:
             game_status = 'upgrades'
 
         pygame.display.update()
 
     #Game
     if game_status == 'game':
-            
-        coin_counter()
+
+        now = pygame.time.get_ticks()
+        last_wave_start = now - 20000 * new_wave_clicks
+        
 
         #General movement
         keys = pygame.key.get_pressed()
@@ -478,7 +510,6 @@ while game_over == False:
             display_scroll.y += speed_factor
         
 
-        now = pygame.time.get_ticks()
 
         #Enemy movement
         if now - last_enemy_spawn > RELOAD_DELAY_TYPE2:        
@@ -506,13 +537,15 @@ while game_over == False:
  
         for enemy in enemies:
             if player.rect.colliderect(enemy.hitbox):
-                player.take_damage(4)
-                player.draw_health_bar(display)
+                if now > last_damage_take + RELOAD_DELAY_TYPE4:     
+                    player.take_damage(enemy_damage + (new_wave_clicks * 5) - defence_stat / 4)
+                    player.draw_health_bar(display)
+                    last_damage_take = now
 
 
             
         if now > last_healing + RELOAD_DELAY_TYPE3:
-            player.get_healing(10)
+            player.get_healing(health_regen_stat)
             last_healing = now
             
 
@@ -551,13 +584,14 @@ while game_over == False:
                 enemy.current_hp -= strength_stat
                 projectiles.remove(projectile)
 
-            if enemy.current_hp == 0:
+            if enemy.current_hp <= 0.3:
                 enemies.remove(enemy)
                 coins += 5
 
         
-        if now > 10000:
+        if now - wave_start > 20000:
             game_status = 'wave_completed'
+            
                 
 
         if player.current_hp < 1:
@@ -583,6 +617,7 @@ while game_over == False:
         pygame.draw.rect(display, (255, 0, 0), (20, 20, 400, 35))
         player.draw_health_bar(display)
         pygame.draw.rect(display, (0, 0, 0), (screen_x / 2, screen_y / 2, 2, 2))
+        game_screen()
 
         pygame.display.update()
 
