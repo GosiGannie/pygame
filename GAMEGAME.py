@@ -37,6 +37,8 @@ health_color_red = Color(100, 0, 0)
 health_color_green = Color(38, 196, 8)
 projectile_color = Color(40, 40, 60)
 start_button_color = (255, 255, 255)
+tutorial_button_color = (255, 255, 255)
+return_button_color = (255, 255, 255)
 restart_button_color = (255, 255, 255)
 quit_button_color = (255, 255, 255)
 title_color = (255, 255, 255)
@@ -73,24 +75,35 @@ inside_x = -100
 inside_y = -100
 
 
-#Stats
+#Start stats
 strength_stat = 10
 defence_stat = 10
 max_hp_stat = 100
-health_regen_stat = 2
+health_regen_stat = 1
 
 enemy_damage = 10
 
-#Costs
+#Start costs
 strength_cost = 5
 defence_cost = 5
 max_hp_cost = 5
 health_regen_cost = 10
 
+coins = 0
+
 
 #Start screen rects
 start_button_rect = pygame.Rect(515, 455, 170, 85)
 outline_rect = pygame.Rect(30, 30, screen_x - 60, screen_y - 60)
+tutorial_rect = pygame.Rect(470, 635, 260, 85)
+
+#Tutorial rects
+left_click_rect = pygame.Rect(245, 391, 178, 49)
+w_rect = pygame.Rect(731, 391, 51, 49)
+a_rect = pygame.Rect(795, 391, 51, 49)
+s_rect = pygame.Rect(857, 391, 47, 49)
+d_rect = pygame.Rect(915, 391, 49, 49)
+return_rect = pygame.Rect(510, 570, 179, 60)
 
 #Game over rects
 restart_button_rect = pygame.Rect(280, 454, 243, 90)
@@ -163,10 +176,9 @@ class Enemy():
         self.health_bar_color = health_bar_color
 
     def draw(self, display):
-        pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.hitbox)
-        #enemy_img = pygame.image.load('Sprites/Monster/idle_down (1).png')
-        #enemy_img = pygame.transform.scale(enemy_img, (90, 90))
-        #display.blit(enemy_img, (self.hitbox.x - 30, self.hitbox.y - 30, self.width, self.height))
+        enemy_img_path = pygame.image.load('Sprites/Monster/idle_down (1).png')
+        enemy_img = pygame.transform.scale(enemy_img_path, (90, 90))
+        display.blit(enemy_img, (self.hitbox.x - 30, self.hitbox.y - 30, self.width, self.height))
         return self
 
     def update(self):
@@ -206,9 +218,6 @@ class Projectile():
     
     def draw(self, display):
         pygame.draw.rect(display, (self.color.r, self.color.g, self.color.b), self.hitbox)
-        #projectile_img = pygame.image.load('Sprites/bullet.png')
-        #projectile_img = pygame.transform.scale(projectile_img, (75, 75))
-        #display.blit(projectile_img, (self.hitbox.x - 30, self.hitbox.y - 30, 15, 15))
         return self
     
     def update(self):
@@ -240,29 +249,59 @@ completed_wave_timer = pygame.time.get_ticks()
 clock = pygame.time.Clock()
 
 
+#Text and screens
 def draw_start_screen():
     display.fill(inside_color)
     font_title = pygame.font.SysFont(None, 130)
     font_start_button = pygame.font.SysFont(None, 90)
-    title = font_title.render('GAMEGAME', True, (255, 255, 255))
+    font_tutorial_button = pygame.font.SysFont(None, 90)
 
+    title = font_title.render('GAMEGAME', True, (255, 255, 255))
     start_button_txt = font_start_button.render('Start', True, start_button_color)
+    tutorial_button_txt = font_tutorial_button.render('Tutorial', True, tutorial_button_color)
 
     display.blit(title, (screen_x / 2 - title.get_width() / 2, screen_y / 2 - title.get_height() / 2 - 170))
     display.blit(start_button_txt, (screen_x / 2 - start_button_txt.get_width() / 2, screen_y / 2 - start_button_txt.get_height() / 2 + 50))
+    display.blit(tutorial_button_txt, (screen_x / 2 - tutorial_button_txt.get_width() / 2, 650))
+
+def tutorial_screen():
+    display.fill(inside_color)
+    font_tutorial = pygame.font.SysFont(None, 130)
+    font_attack = pygame.font.SysFont(None, 90)
+    font_left_click = pygame.font.SysFont(None, 50)
+    font_move = pygame.font.SysFont(None, 90)
+    font_wasd = pygame.font.SysFont(None, 50)
+    font_return = pygame.font.SysFont(None, 70)
+
+    tutorial_txt = font_tutorial.render('Tutorial', True, (255, 255, 255))
+    attack_txt = font_attack.render('Attack', True, (255, 255, 255))
+    left_click_txt = font_left_click.render('Left Click', True, (255, 255, 255))
+    move_txt = font_move.render('Move', True, (255, 255, 255))
+    wasd_txt = font_wasd.render('W    A    S    D', True, (255, 255, 255))
+    return_txt = font_return.render('Return', True, return_button_color)
+
+    display.blit(tutorial_txt, (screen_x / 2 - tutorial_txt.get_width() / 2, 100))
+    display.blit(attack_txt, (240, 300))
+    display.blit(left_click_txt, (255, 400))
+    display.blit(move_txt, (760, 300))
+    display.blit(wasd_txt, (740, 400))
+    display.blit(return_txt, (screen_x / 2 - return_txt.get_width() / 2, 579))
 
 def draw_game_over_screen():
     display.fill((0, 0, 0))
     font_game_over = pygame.font.SysFont(None, 130)
     font_restart_quit = pygame.font.SysFont(None, 90)
+    font_wave_completion = pygame.font.SysFont(None, 100)
 
     title_game_over = font_game_over.render('Game Over', True, (255, 255, 255))
     restart_button_txt = font_restart_quit.render('Restart', True, restart_button_color)
     quit_button_txt = font_restart_quit.render('Quit', True, quit_button_color)
+    wave_completion_txt = font_wave_completion.render('Waves Completed: {}'.format(new_wave_clicks), True, (255, 255, 255))
 
-    display.blit(title_game_over, (screen_x / 2 - title_game_over.get_width() / 2, screen_y / 2 - title_game_over.get_height() / 2 - 170))
+    display.blit(title_game_over, (screen_x / 2 - title_game_over.get_width() / 2, screen_y / 2 - title_game_over.get_height() / 2 - 240))
     display.blit(restart_button_txt, (screen_x / 2 - restart_button_txt.get_width() / 2 - 200, screen_y / 2 - restart_button_txt.get_height() / 2 + 50))
     display.blit(quit_button_txt, (screen_x / 2 - quit_button_txt.get_width() / 2 + 200, screen_y / 2 - quit_button_txt.get_height() / 2 + 50))
+    display.blit(wave_completion_txt, (screen_x / 2- wave_completion_txt.get_width() / 2, 300))
 
 def upgrade_screen():
     display.fill(upgrade_screen_background_color)
@@ -314,34 +353,26 @@ def upgrade_screen():
     display.blit(max_hp_buy, (screen_x / 4 - max_hp_buy.get_width() / 2, screen_y / 2 - max_hp_buy.get_height() / 2 + 210))
     display.blit(health_regen_buy, ((screen_x / 4) * 3 - health_regen_buy.get_width() / 2, screen_y / 2 - health_regen_buy.get_height() / 2 + 210))
 
-def wave_completed():
-    display.fill(upgrade_screen_background_color)
-    font_title = pygame.font.SysFont(None, 130)
-
-    titel_txt = font_title.render('Wave completed!', True, (255, 255, 255))
-
-    display.blit(titel_txt, (screen_x / 2 - titel_txt.get_width() / 2, screen_y / 2 - titel_txt.get_height() / 2 - 100))
-
-coins = 0
-
 def game_screen():
     font_coin_counter = pygame.font.SysFont(None, 60)
     font_game_timer = pygame.font.SysFont(None, 60)
     font_max_hp = pygame.font.SysFont(None, 50)
+    font_wave_counter = pygame.font.SysFont(None, 60)
 
     coin_count = font_coin_counter.render('Coins: {}'.format(coins), True, (255,215,0))
     game_timer = font_game_timer.render('Wave Time: {}'.format(last_wave_start / 1000), True, (255, 255, 255))
     max_hp_txt = font_max_hp.render('HP: {} / {}'.format(player.current_hp, player.max_hp), True, (255, 255, 255))
+    wave_counter_txt = font_wave_counter.render('Wave: {}'.format(new_wave_clicks + 1), True, (255, 255, 255))
 
-    display.blit(coin_count, (screen_x - 300, 20))
+    display.blit(coin_count, (screen_x - 250, 20))
     display.blit(game_timer, (screen_x / 2 - 150, 20))
     display.blit(max_hp_txt, (25, 60))
+    display.blit(wave_counter_txt, (25, 100))
     pygame.display.update()
 
 
+
 game_status = 'start_screen'
-
-
 
 new_wave_clicks = 0
 
@@ -358,7 +389,10 @@ while game_over == False:
         draw_start_screen()
         pygame.draw.rect(display, start_button_color, start_button_rect, 6)
         pygame.draw.rect(display, surrounding_color, outline_rect, 20)
+        pygame.draw.rect(display, tutorial_button_color, tutorial_rect, 6)
 
+
+        #Start button
         mouse_coordinate_start_screen = pygame.mouse.get_pos()
         if start_button_rect.collidepoint(mouse_coordinate_start_screen):
             start_button_color = (180, 180, 180)
@@ -369,7 +403,45 @@ while game_over == False:
             if 515 <= mouse_coordinate_start_screen[0] <= 515 + 170 and 455 <= mouse_coordinate_start_screen[1] <= 455 + 85:
                 game_status = 'game'
 
+        #Tutorial button
+        if tutorial_rect.collidepoint(mouse_coordinate_start_screen):
+            tutorial_button_color = (180, 180, 180)
+        else:
+            tutorial_button_color = (255, 255, 255)
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            if 470 <= mouse_coordinate_start_screen[0] <= 470 + 260 and 635 <= mouse_coordinate_start_screen[1] <= 635 + 85:
+                game_status = 'tutorial'
+
+
         pygame.display.update()
+
+
+    if game_status == 'tutorial':
+        tutorial_screen()
+        pygame.draw.rect(display, surrounding_color, outline_rect, 20)
+        pygame.draw.rect(display, (255, 255, 255), left_click_rect, 4)
+        pygame.draw.rect(display, (255, 255, 255), w_rect, 4)
+        pygame.draw.rect(display, (255, 255, 255), a_rect, 4)
+        pygame.draw.rect(display, (255, 255, 255), s_rect, 4)
+        pygame.draw.rect(display, (255, 255, 255), d_rect, 4)
+        pygame.draw.rect(display, return_button_color, return_rect, 4)
+
+
+        #Return button
+        mouse_coordinate_tutorial = pygame.mouse.get_pos()
+        if return_rect.collidepoint(mouse_coordinate_tutorial):
+            return_button_color = (180, 180, 180)
+        else:
+            return_button_color = (255, 255, 255)
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            if 510 <= mouse_coordinate_tutorial[0] <= 510 + 179 and 570 <= mouse_coordinate_tutorial[1] <= 570 + 60:
+                game_status = 'start_screen'
+
+
+        pygame.display.update()
+
     
     #Game over screen
     if game_status == 'game_over':
@@ -412,6 +484,10 @@ while game_over == False:
         pygame.draw.rect(display, defence_buy_color, defence_buy_rect, 5)
         pygame.draw.rect(display, max_hp_buy_color, max_hp_buy_rect, 5)
         pygame.draw.rect(display, health_regen_buy_color, health_regen_buy_rect, 5)
+        coquette_img_path = pygame.image.load('Sprites/coquette_copy.png').convert_alpha()
+        coquette_img = pygame.transform.scale(coquette_img_path, (100, 100))
+        display.blit(coquette_img, (630, 34, 50, 50))
+
 
         mouse_coordinate_upgrades = pygame.mouse.get_pos()
 
@@ -449,9 +525,7 @@ while game_over == False:
             max_hp_buy_color = (255, 255, 255)
             health_regen_buy_color = (255, 255, 255)
 
-
         if event.type == pygame.MOUSEBUTTONDOWN:
-            #if pygame
             if coins >= strength_cost:
                 if strength_buy_rect.x <= mouse_coordinate_upgrades[0] <= strength_buy_rect.x + strength_buy_rect.width and strength_buy_rect.y <= mouse_coordinate_upgrades[1] <= strength_buy_rect.y + strength_buy_rect.width:
                     strength_stat += 1
@@ -469,24 +543,13 @@ while game_over == False:
                     max_hp_cost += max_hp_cost / 2
             if coins >= health_regen_cost:
                 if health_regen_buy_rect.x <= mouse_coordinate_upgrades[0] <= health_regen_buy_rect.x + health_regen_buy_rect.width and health_regen_buy_rect.y <= mouse_coordinate_upgrades[1] <= health_regen_buy_rect.y + health_regen_buy_rect.width:
-                    health_regen_stat += 2
+                    health_regen_stat += 1
                     coins -= health_regen_cost
                     health_regen_cost += health_regen_cost / 2
 
         pygame.display.update()
 
-    #Completed wave screen
-    if game_status == 'wave_completed':
-        wave_completed()
 
-        now = pygame.time.get_ticks()
-
-        if now - completed_wave_timer> 1000:
-            game_status = 'upgrades'
-
-        pygame.display.update()
-
-    #Game
     if game_status == 'game':
 
         now = pygame.time.get_ticks()
@@ -513,28 +576,17 @@ while game_over == False:
 
         #Enemy movement
         if now - last_enemy_spawn > RELOAD_DELAY_TYPE2:        
-            enemy = Enemy(random.randint(-100, 1200), random.randint(-100, 900), 30, 30, enemy_color, 0.0, 2, display_scroll, 20, 20, 40, enemy_health_bar_color)
+            enemy = Enemy(random.randint(-100, 1200), random.randint(-100, 900), 30, 30, enemy_color, 0.0, 2, display_scroll, 20 + 2 * new_wave_clicks, 20 + 2 * new_wave_clicks, 40, enemy_health_bar_color)
             (enemy_dx, enemy_dy) = (enemy.x, enemy.y) - pygame.Vector2(player.rect.center)
             enemy_angle = math.atan2(enemy_dy, enemy_dx)
             enemy.direction = enemy_angle
             enemies.append(enemy)
             last_enemy_spawn = now
-            
-        enemies_to_remove = []
-        for enemy in enemies:
-            if -100 - display_scroll.x >= enemy.hitbox.x >= 1200 - display_scroll.x and -100 - display_scroll.y >= enemy.hitbox.y >= 1000 - display_scroll.y:
-                enemies_to_remove.append(enemy)
 
-        for enemy in enemies_to_remove:
-            enemies.remove(enemy)
-
-        for projectile in projectiles:
-            if -100 + display_scroll.x >= projectile.hitbox.x >= 1200 + display_scroll.x or -100 + display_scroll.y >= projectile.hitbox.y >= 1000 + display_scroll.y:
-                projectiles.remove(projectile)
 
         inside_rect = pygame.Rect(inside_x + display_scroll.x, inside_y + display_scroll.y, 1400, 1100)
 
- 
+        #Enemy damage
         for enemy in enemies:
             if player.rect.colliderect(enemy.hitbox):
                 if now > last_damage_take + RELOAD_DELAY_TYPE4:     
@@ -542,24 +594,11 @@ while game_over == False:
                     player.draw_health_bar(display)
                     last_damage_take = now
 
-
-            
+        #Healing
         if now > last_healing + RELOAD_DELAY_TYPE3:
             player.get_healing(health_regen_stat)
             last_healing = now
             
-
-        if player.current_hp < 300:
-            health_color_green = (204, 22, 2)
-
-        #if player_rect.colliderect(enemy_rect):
-        #    player_health_width -= 0.35
-        #if player_health_width < 35:
-        #   health_color_green = (182, 191, 0)
-        #if player_health_width < 20:
-            #health_color_green = (204, 22, 2)
-
-
 
         #Projectile movement
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -573,18 +612,13 @@ while game_over == False:
                     last_shot = now
 
 
-        for projectile in projectiles:
-            if -100 + display_scroll.x >= projectile.hitbox.x >= 1200 + display_scroll.x or -100 + display_scroll.y >= projectile.hitbox.y >= 1000 + display_scroll.y:
-                projectiles.remove(projectile)
-
-
-
+        #Enemy projectile collision
         for enemy in enemies:
             if enemy.hitbox.colliderect(projectile.hitbox):
                 enemy.current_hp -= strength_stat
                 projectiles.remove(projectile)
 
-            if enemy.current_hp <= 0.3:
+            if enemy.current_hp == 0:
                 enemies.remove(enemy)
                 coins += 5
 
@@ -593,8 +627,7 @@ while game_over == False:
             game_status = 'wave_completed'
             
                 
-
-        if player.current_hp < 1:
+        if player.current_hp == 0:
             game_status = 'game_over'
 
 
